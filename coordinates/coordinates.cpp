@@ -2,6 +2,8 @@
 #include <numbers>
 #include <math.h>
 
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChRotation.h"
 
 int main()
 {
