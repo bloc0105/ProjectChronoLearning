@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 project(linalg)
 
-find_package(Chrono
+find_package(Chrono COMPONENTS Irrlicht
              CONFIG)
 
 if (NOT Chrono_FOUND)
