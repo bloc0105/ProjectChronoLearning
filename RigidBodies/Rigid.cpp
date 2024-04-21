@@ -12,27 +12,58 @@
 int main()
 {
 
-    double sphere_radius = 13.4;
-    auto vis_mat = chrono_types::make_shared<chrono::ChVisualMaterial>();
-    vis_mat->SetDiffuseColor(chrono::ChColor(1.0f, 0.0f, 0.0f));
+    double sphere_radius = 1.25;
+    double box_spin = 100 * chrono::CH_DEG_TO_RAD;
+
+
+    auto vis_mat_red = chrono_types::make_shared<chrono::ChVisualMaterial>();
+    vis_mat_red->SetDiffuseColor(chrono::ChColor(1.0f, 0.0f, 0.0f));
+
+    auto vis_mat_green = chrono_types::make_shared<chrono::ChVisualMaterial>();
+    vis_mat_green->SetDiffuseColor(chrono::ChColor(0.0f, 1.0f, 0.0f));
+
 
     auto vis_sphere = chrono_types::make_shared<chrono::ChVisualShapeSphere>(sphere_radius);
-    vis_sphere->AddMaterial(vis_mat);
+    vis_sphere->AddMaterial(vis_mat_red);
+
+    auto vis_box = chrono_types::make_shared<chrono::ChVisualShapeBox>(1.5,3,2.227);
+    vis_box->AddMaterial(vis_mat_green);
 
 
-    auto visual_model = chrono_types::make_shared<::chrono::ChVisualModel>();
-    visual_model->AddShape(vis_sphere,chrono::ChFramed());
 
-    auto the_sphere = std::make_shared<chrono::ChBody>();
-    the_sphere->SetMass(6.0);
-    the_sphere->SetInertia(chrono::ChVector3d(1.0,1.0,1.0));
-    the_sphere->SetPos(chrono::ChVector3d(0,0,0));
+    auto visual_model_sphere = chrono_types::make_shared<::chrono::ChVisualModel>();
+    visual_model_sphere->AddShape(vis_sphere,chrono::ChFramed());
 
-    the_sphere->AddVisualModel(visual_model);
+    auto the_sphere_body = std::make_shared<chrono::ChBody>();
+    the_sphere_body->SetMass(6.0);
+    the_sphere_body->SetInertia(chrono::ChVector3d(1.0,1.0,1.0));
+    the_sphere_body->SetPos(chrono::ChVector3d(0,0,0));
+
+
+
+    auto visual_model_box = chrono_types::make_shared<::chrono::ChVisualModel>();
+    visual_model_box->AddShape(vis_box,chrono::ChFramed());
+
+    auto the_box_body = std::make_shared<chrono::ChBody>();
+    the_box_body->SetMass(5.0);
+    the_box_body->SetInertia(chrono::ChVector3d(1.5,3,2.227));
+    
+
+    chrono::ChFramed box_frame(chrono::ChVector3d(4.0,2.3,1.778),0);
+    
+    the_box_body->SetCoordsys(chrono::ChCoordsys(box_frame.GetCoordsys()));
+    the_box_body->SetAngVelParent(chrono::ChVector3d(10,0,0));
+
+
+    the_sphere_body->AddVisualModel(visual_model_sphere);
+
+    the_box_body->AddVisualModel(visual_model_box);
+
 
     auto sys = chrono::ChSystemNSC();
     
-    sys.Add(the_sphere);
+    sys.Add(the_sphere_body);
+    sys.Add(the_box_body);
 
     sys.SetGravitationalAcceleration(0.0);
 
@@ -43,7 +74,7 @@ int main()
     vis_system->Initialize();
     vis_system->AddLogo();
     vis_system->AddSkyBox();
-    vis_system->AddCamera(chrono::ChVector3d(-2,3,-4));
+    vis_system->AddCamera(chrono::ChVector3d(-2,4,-2));
     vis_system->AddTypicalLights();
 
     while (vis_system->Run())
@@ -56,6 +87,7 @@ int main()
 
         vis_system->EndScene();
         sys.DoStepDynamics(0.01);
+
     }
     
 
