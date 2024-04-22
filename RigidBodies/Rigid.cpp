@@ -45,15 +45,15 @@ int main()
     visual_model_box->AddShape(vis_box,chrono::ChFramed());
 
     auto the_box_body = std::make_shared<chrono::ChBody>();
-    the_box_body->SetMass(5.0);
-    the_box_body->SetInertia(chrono::ChVector3d(1.5,3,2.227));
+    // the_box_body->SetMass(5.0);
+    // the_box_body->SetInertia(chrono::ChVector3d(0.1,0.1,0.1));
     
 
     chrono::ChFramed box_frame(chrono::ChVector3d(4.0,2.3,1.778),0);
     
     the_box_body->SetCoordsys(chrono::ChCoordsys(box_frame.GetCoordsys()));
-    the_box_body->SetAngVelParent(chrono::ChVector3d(10,0,0));
-
+    the_box_body->SetRotDt(chrono::QuatFromAngleX(5 * chrono::CH_DEG_TO_RAD));
+    the_box_body->SetRotDt2(chrono::ChQuaterniond(0,0,0,0));
 
     the_sphere_body->AddVisualModel(visual_model_sphere);
 
@@ -77,6 +77,13 @@ int main()
     vis_system->AddCamera(chrono::ChVector3d(-2,4,-2));
     vis_system->AddTypicalLights();
 
+std::cout << "Inertia is " << the_box_body->GetInertia() << std::endl;    
+std::cout << "can I just print the box? " << the_box_body->GetRotDt() << std::endl;
+std::cout << "Rotation Acceleration Quat is " << the_box_body->GetRotDt2() << std::endl;
+
+std::size_t counter = 0;
+
+
     while (vis_system->Run())
     {
         vis_system->BeginScene();
@@ -87,9 +94,13 @@ int main()
 
         vis_system->EndScene();
         sys.DoStepDynamics(0.01);
+        if (counter < 10)
+    {
+        std::cout << "BOx spin angle is " << the_box_body->GetRotDt() << std::endl;
+++counter;
+}
 
     }
     
-
     return 0;
 }
