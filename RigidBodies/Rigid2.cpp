@@ -12,15 +12,15 @@ int main()
 {
 
     double rot_angle = 50.0 * chrono::CH_DEG_TO_RAD;
-    // Make a red Sphere and a Green Box
     auto the_body = std::make_shared<chrono::ChBody>();
 
-    chrono::ChFramed box_frame(chrono::ChVector3d(3.0, 2.3, 1.778), 0);
+
+    chrono::ChFramed box_frame(chrono::ChVector3d(0, 0, 0),chrono::ChQuaterniond(1,0,0,0));
 
     // Set the physical properties of the box.
     the_body->SetCoordsys(chrono::ChCoordsys(box_frame.GetCoordsys()));
-    the_body->SetAngVelLocal(chrono::ChVector3d(rot_angle, 0, 0));
-    the_body->SetRotDt2(chrono::QuatFromAngleX(0));
+    the_body->SetAngVelLocal(chrono::ChVector3d(rot_angle,0,0));
+
 
     std::cout << "Rotation angle should be " << rot_angle << std::endl;
     std::cout << "Prior angular Velocity is " << the_body->GetAngVelLocal() << std::endl;
