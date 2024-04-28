@@ -3,6 +3,8 @@
 #include "chrono/physics/ChBody.h"
 #include <string>
 #include "chrono/physics/ChLinkLock.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 int main()
 {
@@ -21,9 +23,7 @@ int main()
     auto independent_body = chrono_types::make_shared<chrono::ChBody>();
     auto dependent_body = chrono_types::make_shared<chrono::ChBody>();
 
-
-
-
+    dependent_body->SetPos(chrono::ChVector3d(1,1,1));
 
     chrono::ChCoordsys position_coordinates(chrono::ChVector3d(2, 0, 0), chrono::ChQuaterniond(1, 0, 0, 0));
     chrono::ChCoordsys velocity_coordinates(chrono::ChVector3d(0, 0, 0), chrono::ChQuaterniond(1, 0, 0, 0));
@@ -40,8 +40,23 @@ int main()
     // chrono::ChMarker dependent_marker(other_marker_name,dependent_body.get(),dependent_body->GetCoordsys(),
     //                 dependent_body->GetCoordsysDt(),dependent_body->GetCoordsysDt2());
 
-    auto some_link = chrono_types::make_shared<chrono::ChLinkLock>();
-    some_link->Initialize(independent_body,dependent_body,the_main_frame);
+    auto some_link = chrono_types::make_shared<chrono::ChLinkMateFix>();
+    some_link->Initialize(independent_body,dependent_body);
+
+    some_link->SetConstrainedCoords(1,1,1,1,1,1);
+
+
+    auto sys = chrono::ChSystemNSC();
+    sys.Add(independent_body);
+    sys.Add(dependent_body);
+    sys.Add(some_link);
+    
+
+    std::cout << "Linkage" << std::endl << "-------------------------------------------------------------------" << std::endl;
+    std::cout << some_link->GetFrame1Rel() << std::endl << some_link->GetFrame2Rel() << std::endl;
+    std::cout << "---------------------------------------------------------------------------" << std::endl;
+
+
 
     std::cout << "Before" << std::endl << "------------------------------------------------------------------------" << std::endl;
 
@@ -58,8 +73,11 @@ int main()
     std::cout << "Independent: " << independent_body->GetPos() << std::endl;
     std::cout << "Dependent: " << dependent_body->GetPos() << std::endl << std::endl;
 
-
-
+    std::cout << "---------------------------------------------------------------------------" << std::endl;
     
+    std::cout << "Linkage" << std::endl << "-------------------------------------------------------------------" << std::endl;
+    std::cout << some_link->GetFrame1Rel() << std::endl << some_link->GetFrame2Rel() << std::endl;
+    std::cout << "---------------------------------------------------------------------------" << std::endl;
+
     return 0;
 }
