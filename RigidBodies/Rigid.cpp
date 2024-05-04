@@ -36,6 +36,7 @@ int main()
     the_sphere_body->SetInertia(chrono::ChVector3d(1.0, 1.0, 1.0));
     the_sphere_body->SetPos(chrono::ChVector3d(0, 0, 0));
 
+
     auto visual_model_box = chrono_types::make_shared<::chrono::ChVisualModel>();
     visual_model_box->AddShape(vis_box, chrono::ChFramed());
 
