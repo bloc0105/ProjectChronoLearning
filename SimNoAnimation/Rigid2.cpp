@@ -1,12 +1,12 @@
-#include "chrono/physics/ChBody.h"
+
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChTypes.h"
 #include "chrono/geometry/ChSphere.h"
 #include "chrono/core/ChRotation.h"
+#include "chrono/physics/ChBody.h"
 
 int main()
 {
@@ -17,7 +17,6 @@ int main()
 
     chrono::ChCoordsys pos_coodinates(chrono::ChVector3d(0, 0, 0), chrono::ChQuaterniond(1, 0, 0, 0));
 
-    chrono::ChFramed box_frame(pos_coodinates);
     // the_body->SetLinVel(chrono::ChVector3d(1, 0, 0));
     the_body->SetLinAcc(chrono::ChVector3d(1, 0, 0));
     std::cout << "Initial acceleration set to " << the_body->GetLinAcc() << std::endl;
@@ -36,7 +35,7 @@ int main()
     for (double frame_time = 0.0; frame_time < 5.0; frame_time += frame_time_interval)
     {
         std::cout << "Pos: " << the_body->GetPos()
-                  << " ___ Vel: " << the_body->GetLinVel() << " ___ Acc: " << the_body->GetLinAcc() << std::endl;
+                  << "     Vel: " << the_body->GetLinVel() << "     Acc: " << the_body->GetLinAcc() << std::endl;
         sys.DoStepDynamics(frame_time_interval);
     }
     std::cout << "The end, acceleration set to " << the_body->GetLinAcc() << std::endl;
