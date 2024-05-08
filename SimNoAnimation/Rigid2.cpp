@@ -24,7 +24,7 @@ int main()
     chrono::ChSystemNSC sys;
     std::cout << "After making system, acceleration set to " << the_body->GetLinAcc() << std::endl;
 
-    sys.SetGravitationalAcceleration(chrono::ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(chrono::ChVector3d(0, 0, -1));
     std::cout << "After setting Gravity, acceleration set to " << the_body->GetLinAcc() << std::endl;
 
     sys.AddBody(the_body);
