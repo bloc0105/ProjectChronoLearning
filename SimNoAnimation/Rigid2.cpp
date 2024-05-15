@@ -18,8 +18,13 @@ int main()
     chrono::ChCoordsys pos_coodinates(chrono::ChVector3d(0, 0, 0), chrono::ChQuaterniond(1, 0, 0, 0));
 
     // the_body->SetLinVel(chrono::ChVector3d(1, 0, 0));
-    the_body->SetLinAcc(chrono::ChVector3d(1, 0, 0));
+
+    the_body->SetPos(pos_coodinates.pos);
     std::cout << "Initial acceleration set to " << the_body->GetLinAcc() << std::endl;
+
+    chrono::ChVector3d initial_acc(1, 0, 0);
+    chrono::ChVector3d initial_force = the_body->GetMass() * initial_acc;
+    the_body->AccumulateForce(initial_force, pos_coodinates.pos, false);
 
     chrono::ChSystemNSC sys;
     std::cout << "After making system, acceleration set to " << the_body->GetLinAcc() << std::endl;
