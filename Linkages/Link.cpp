@@ -5,79 +5,90 @@
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 int main()
 {
+
     auto vis_mat_red = chrono_types::make_shared<chrono::ChVisualMaterial>();
     vis_mat_red->SetDiffuseColor(chrono::ChColor(1.0f, 0.0f, 0.0f));
 
     auto vis_mat_green = chrono_types::make_shared<chrono::ChVisualMaterial>();
     vis_mat_green->SetDiffuseColor(chrono::ChColor(0.0f, 1.0f, 0.0f));
 
-    auto vis_box_green = chrono_types::make_shared<chrono::ChVisualShapeBox>(1, 1, 5);
-    vis_box_green->AddMaterial(vis_mat_green);
+    auto vis_box_ind = chrono_types::make_shared<chrono::ChVisualShapeBox>(0.5, 0.5, 0.5);
+    vis_box_ind->AddMaterial(vis_mat_green);
 
-    auto vis_box_red = chrono_types::make_shared<chrono::ChVisualShapeBox>(1, 1, 5);
-    vis_box_red->AddMaterial(vis_mat_red);
+    auto vis_box_dep = chrono_types::make_shared<chrono::ChVisualShapeBox>(0.5, 0.5, 0.5);
+    vis_box_dep->AddMaterial(vis_mat_green);
+
+    auto vis_box_ind_model = chrono_types::make_shared<::chrono::ChVisualModel>();
+    auto vis_box_dep_model = chrono_types::make_shared<::chrono::ChVisualModel>();
+
+    vis_box_ind_model->AddShape(vis_box_ind);
+    vis_box_dep_model->AddShape(vis_box_dep);
 
     auto independent_body = chrono_types::make_shared<chrono::ChBody>();
     auto dependent_body = chrono_types::make_shared<chrono::ChBody>();
 
-    dependent_body->SetPos(chrono::ChVector3d(1,1,1));
+    independent_body->SetPos(chrono::ChVector3d(2, 0, 0));
+    independent_body->SetMass(2.3);
 
-    chrono::ChCoordsys position_coordinates(chrono::ChVector3d(2, 0, 0), chrono::ChQuaterniond(1, 0, 0, 0));
-    chrono::ChCoordsys velocity_coordinates(chrono::ChVector3d(0, 0, 0), chrono::ChQuaterniond(1, 0, 0, 0));
-    chrono::ChCoordsys acceleration_coordinates(chrono::ChVector3d(0, 0, 0), chrono::ChQuaterniond(1, 0, 0, 0));
+    dependent_body->SetPos(chrono::ChVector3d(-10, 0, 0));
+    dependent_body->SetMass(2.3);
 
-    chrono::ChFramed the_main_frame(position_coordinates);
+    chrono::ChVector3d velocity_coordinates(1, 0, 0);
+    // chrono::ChVector3d velocity_coordinates(0, 0, 0);
 
-    std::string marker_name = "Whatever";
-    std::string other_marker_name = "A Marker";
-
-    // chrono::ChMarker independent_marker(marker_name,independent_body.get(),independent_body->GetCoordsys(),
-    //                                     independent_body->GetCoordsysDt(),independent_body->GetCoordsysDt2());
-
-    // chrono::ChMarker dependent_marker(other_marker_name,dependent_body.get(),dependent_body->GetCoordsys(),
-    //                 dependent_body->GetCoordsysDt(),dependent_body->GetCoordsysDt2());
+    dependent_body->SetLinVel(velocity_coordinates);
 
     auto some_link = chrono_types::make_shared<chrono::ChLinkMateFix>();
-    some_link->Initialize(independent_body,dependent_body);
+    // some_link->Initialize(independent_body, dependent_body);
 
-    some_link->SetConstrainedCoords(1,1,1,1,1,1);
+    // some_link->SetConstrainedCoords(1, 1, 1, 1, 1, 1);
 
+    independent_body->AddVisualModel(vis_box_ind_model);
+    dependent_body->AddVisualModel(vis_box_dep_model);
 
-    auto sys = chrono::ChSystemNSC();
-    sys.Add(independent_body);
-    sys.Add(dependent_body);
-    sys.Add(some_link);
-    
+    auto phys_system = chrono::ChSystemNSC();
+    phys_system.Add(independent_body);
+    phys_system.Add(dependent_body);
+    // phys_system.Add(some_link);
 
-    std::cout << "Linkage" << std::endl << "-------------------------------------------------------------------" << std::endl;
-    std::cout << some_link->GetFrame1Rel() << std::endl << some_link->GetFrame2Rel() << std::endl;
-    std::cout << "---------------------------------------------------------------------------" << std::endl;
+    phys_system.SetGravitationalAcceleration(0.0);
 
+    auto vis_system = chrono_types::make_shared<chrono::irrlicht::ChVisualSystemIrrlicht>();
+    vis_system->AttachSystem(&phys_system);
+    vis_system->SetWindowSize(800, 600);
+    vis_system->SetWindowTitle("I made a Demo!!!");
+    vis_system->Initialize();
+    vis_system->AddLogo();
+    vis_system->AddSkyBox();
+    vis_system->AddCamera(chrono::ChVector3d(-2, 4, -2));
+    vis_system->AddTypicalLights();
 
+    double timestep = 0.01;
+    double total_sim_time = 0.0;
+    double force_duration = .01;
+    chrono::ChVector3d applied_force(0,0,.3);
+    while (vis_system->Run())
+    {
+        vis_system->BeginScene();
+        vis_system->Render();
 
-    std::cout << "Before" << std::endl << "------------------------------------------------------------------------" << std::endl;
+        chrono::irrlicht::tools::drawGrid(vis_system.get(), 0.5, 0.5, 12, 12,
+                                          chrono::ChCoordsys<>(chrono::ChVector3d(0, 0, 0), chrono::QuatFromAngleX(chrono::CH_PI_2)),
+                                          chrono::ChColor(0.31f, 0.43f, 0.43f), true);
 
-    std::cout << "Independent: " << independent_body->GetPos() << std::endl;
-    std::cout << "Dependent: " << dependent_body->GetPos() << std::endl << std::endl;
-
-    // And now we move the thing
-
-    independent_body->SetPos(chrono::ChVector3d(5,2,3));
-
-    std::cout << "After" << std::endl << "--------------------------------------------------------------------------" << std::endl;
-
-
-    std::cout << "Independent: " << independent_body->GetPos() << std::endl;
-    std::cout << "Dependent: " << dependent_body->GetPos() << std::endl << std::endl;
-
-    std::cout << "---------------------------------------------------------------------------" << std::endl;
-    
-    std::cout << "Linkage" << std::endl << "-------------------------------------------------------------------" << std::endl;
-    std::cout << some_link->GetFrame1Rel() << std::endl << some_link->GetFrame2Rel() << std::endl;
-    std::cout << "---------------------------------------------------------------------------" << std::endl;
+        // if (total_sim_time <= force_duration)
+        // {
+        //     independent_body->AccumulateForce(applied_force,independent_body->GetPos(),false);
+        // }
+        
+        vis_system->EndScene();
+        phys_system.DoStepDynamics(timestep);
+        // total_sim_time += timestep;
+    }
 
     return 0;
 }
