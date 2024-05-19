@@ -9,7 +9,6 @@
 
 int main()
 {
-
     auto vis_mat_red = chrono_types::make_shared<chrono::ChVisualMaterial>();
     vis_mat_red->SetDiffuseColor(chrono::ChColor(1.0f, 0.0f, 0.0f));
 
