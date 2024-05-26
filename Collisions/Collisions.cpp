@@ -16,15 +16,12 @@ int main()
     auto the_ground = chrono_types::make_shared<chrono::ChBody>();
     the_ground->SetPos(chrono::ChVector3d(0, 0, 0));
     the_ground->SetFixed(true);
-    auto ground_collision = the_ground->GetCollisionModel();
 
     auto coll_material = chrono_types::make_shared<chrono::ChContactMaterialNSC>();
     auto coll_shape = chrono_types::make_shared<chrono::ChCollisionShapeBox>(coll_material, 100, 0.2, 100);
-
-    ground_collision->Clear();
-    ground_collision->AddShape(coll_shape);
+the_ground->AddCollisionShape(coll_shape);
     the_ground->EnableCollision(true);
-    my_system.AddBody(the_ground);
+    
 
     auto vis_mat_red = chrono_types::make_shared<chrono::ChVisualMaterial>();
     vis_mat_red->SetDiffuseColor(chrono::ChColor(1.0f, 0.0f, 0.0f));
@@ -35,21 +32,18 @@ int main()
     auto vis_ground = chrono_types::make_shared<chrono::ChVisualShapeBox>(100, 0.2, 100);
     vis_ground->AddMaterial(vis_mat_green);
 
-    auto visual_model_ground = chrono_types::make_shared<chrono::ChVisualModel>();
-    visual_model_ground->AddShape(vis_ground, chrono::ChFramed());
-    the_ground->AddVisualModel(visual_model_ground);
+    the_ground->AddVisualShape(vis_ground);
 
     auto the_body = chrono_types::make_shared<chrono::ChBody>();
     the_body->SetPos(chrono::ChVector3d(0, 10, 0));
+ auto coll_shape_box = chrono_types::make_shared<chrono::ChCollisionShapeBox>(coll_material, 1, 1, 1);
 
-    auto coll_shape_box = chrono_types::make_shared<chrono::ChCollisionShapeBox>(coll_material, 1, 1, 1);
-
+the_body->AddCollisionShape(coll_shape_box);
+the_body->EnableCollision(true);
     auto vis_box = chrono_types::make_shared<chrono::ChVisualShapeBox>(1, 1, 1);
     vis_box->AddMaterial(vis_mat_red);
     
-    auto visual_model_box = chrono_types::make_shared<chrono::ChVisualModel>();
-    visual_model_box->AddShape(vis_box, chrono::ChFramed());
-    the_body->AddVisualModel(visual_model_box);
+   the_body->AddVisualShape(vis_box);
 
     // the_body->AddVisualShape(vis_box);
 
