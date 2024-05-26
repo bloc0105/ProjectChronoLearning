@@ -16,7 +16,7 @@ int main()
     vis_mat_green->SetDiffuseColor(chrono::ChColor(0.0f, 1.0f, 0.0f));
 
     auto vis_box_ind = chrono_types::make_shared<chrono::ChVisualShapeBox>(0.5, 0.5, 0.5);
-    vis_box_ind->AddMaterial(vis_mat_green);
+    vis_box_ind->AddMaterial(vis_mat_red);
 
     auto vis_box_dep = chrono_types::make_shared<chrono::ChVisualShapeBox>(0.5, 0.5, 0.5);
     vis_box_dep->AddMaterial(vis_mat_green);
@@ -33,7 +33,7 @@ int main()
     independent_body->SetPos(chrono::ChVector3d(2, 0, 0));
     independent_body->SetMass(2.3);
 
-    dependent_body->SetPos(chrono::ChVector3d(-10, 0, 0));
+    dependent_body->SetPos(chrono::ChVector3d(0, -1, 0));
     dependent_body->SetMass(2.3);
 
     chrono::ChVector3d velocity_coordinates(1, 0, 0);
@@ -42,9 +42,9 @@ int main()
     dependent_body->SetLinVel(velocity_coordinates);
 
     auto some_link = chrono_types::make_shared<chrono::ChLinkMateFix>();
-    // some_link->Initialize(independent_body, dependent_body);
+    some_link->Initialize(independent_body, dependent_body);
 
-    // some_link->SetConstrainedCoords(1, 1, 1, 1, 1, 1);
+    some_link->SetConstrainedCoords(1, 1, 1, 1, 1, 1);
 
     independent_body->AddVisualModel(vis_box_ind_model);
     dependent_body->AddVisualModel(vis_box_dep_model);
@@ -52,7 +52,7 @@ int main()
     auto phys_system = chrono::ChSystemNSC();
     phys_system.Add(independent_body);
     phys_system.Add(dependent_body);
-    // phys_system.Add(some_link);
+    phys_system.Add(some_link);
 
     phys_system.SetGravitationalAcceleration(0.0);
 
