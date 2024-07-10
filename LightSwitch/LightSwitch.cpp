@@ -33,8 +33,12 @@ int main()
         chrono::ChFrameMoving<> root_frame(chrono::ChVector3<>(0, 0, 0), tot_rotation);
 
         body->ConcatenatePreTransformation(root_frame);
-        return body;
     };
+
+    std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> body_pad1;
+    std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> body_pad2;
+    std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> body_switch;
+    std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> body_spring;
 
     chrono::ChSystemNSC the_system;
 
@@ -44,11 +48,86 @@ int main()
     if (load_ok)
     {
 
-        the_doc.Dump(std::cout);
+        TopoDS_Shape shape;
+        // the_doc.Dump(std::cout);
+        if (the_doc.GetNamedShape(shape, "Spring"))
+        {
+            std::cout << " NOt Seg Faulted yet";
+            body_spring = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(shape,
+                                                                                        1000, // density
+                                                                                        true, // add a visualization
+                                                                                        false // add a collision model
+            );
+            alignToYAxis(body_spring);
+        }
+        if (the_doc.GetNamedShape(shape, "Bumper1"))
+        {
+            body_pad1 = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(shape,
+                                                                                      1000, // density
+                                                                                      true, // add a visualization
+                                                                                      false // add a collision model
+            );
+            alignToYAxis(body_pad1);
+        }
+        if (the_doc.GetNamedShape(shape, "Bumper2"))
+        {
+            body_pad2 = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(shape,
+                                                                                      1000, // density
+                                                                                      true, // add a visualization
+                                                                                      false // add a collision model
+            );
+            alignToYAxis(body_pad2);
+        }
+        if (the_doc.GetNamedShape(shape, "Switch"))
+        {
+            body_switch = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(shape,
+                                                                                        1000, // density
+                                                                                        true, // add a visualization
+                                                                                        false // add a collision model
+            );
+            alignToYAxis(body_switch);
+        }
     }
+
     else
     {
         std::cout << "The Step File Was not loaded correctly";
+    }
+
+
+    body_pad1->SetFixed(true);
+    body_pad2->SetFixed(true);
+    body_spring->SetFixed(true);
+    body_switch->SetFixed(true);
+
+    // the_system.Add(body_pad1);
+    // the_system.Add(body_pad2);
+    // the_system.Add(body_spring);
+    // the_system.Add(body_switch);
+
+
+    auto vis_system = chrono_types::make_shared<chrono::irrlicht::ChVisualSystemIrrlicht>();
+    vis_system->AttachSystem(&the_system);
+    vis_system->SetWindowSize(800, 600);
+    vis_system->SetWindowTitle("I made a Demo!!!");
+    vis_system->Initialize();
+    vis_system->AddLogo();
+    vis_system->AddSkyBox();
+    vis_system->AddCamera(chrono::ChVector3d(-2, 4, -2));
+    vis_system->AddTypicalLights();
+
+    
+    while (vis_system->Run())
+    {
+        vis_system->BeginScene();
+        vis_system->Render();
+
+        chrono::irrlicht::tools::drawGrid(vis_system.get(), 0.5, 0.5, 12, 12,
+                                          chrono::ChCoordsys<>(chrono::ChVector3d(0, 0, 0), chrono::QuatFromAngleX(chrono::CH_PI_2)),
+                                          chrono::ChColor(0.31f, 0.43f, 0.43f), true);
+
+        vis_system->EndScene();
+        the_system.DoStepDynamics(0.01);
     }
 
     return load_ok;
