@@ -8,23 +8,26 @@
 int main()
 {
 
-    chrono::ChMatrixNM<double,2,2> anothertwoByTow {{1.5,2.1},{std::sqrt(3),9.444}};
-    chrono::ChMatrixNM<double,2,2> twoByTwo {{3.6,1.0},{77.223,1.656}};
+    chrono::ChMatrixNM<double,2,2> matrix1 {{1.5,2.1},{std::sqrt(3),9.444}};
+    chrono::ChMatrixNM<double,2,2> matrix2 {{3.6,1.0},{77.223,1.656}};
 
-    chrono::ChMatrixNM<double,2,2> multiple;
+    chrono::ChMatrixNM<double,2,2> multiplied_result;
 
-    multiple = anothertwoByTow * twoByTwo;
+    multiplied_result = matrix1 * matrix2;
 
     for (size_t i = 0; i < 2; i++)
     {
         for (size_t q = 0; q < 2; q++)
         {
-            std::cout << multiple(i,q) << "\n\n";
+            std::cout << multiplied_result(i,q) << "\n\n";
         }
         
     }
-    std::cout << "-----------------------------------------------------------";
+    std::cout << "-----------------------------------------------------------" << std::endl;
 
+    std::cout << multiplied_result << std::endl;
+
+    std::cout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"  << std::endl;
     chrono::ChRowVectorN<double,25> some_list;
     
     chrono::ChFunctionConstAcc accel;
