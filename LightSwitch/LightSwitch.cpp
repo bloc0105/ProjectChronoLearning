@@ -8,8 +8,50 @@
 #include "chrono_cascade/ChCascadeBodyEasy.h"
 #include "chrono_cascade/ChCascadeDoc.h"
 #include "chrono_cascade/ChVisualShapeCascade.h"
+#include <TopExp_Explorer.hxx>
+#include <TopoDS_Iterator.hxx>
+
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
+
+// Recursively explore the hierarchy of shapes
+std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> ExploreShape(const TopoDS_Shape &shape, chrono::cascade::ChCascadeDoc &the_doc, const char *name)
+{
+    TopExp_Explorer explorer;
+
+    // Iterate over solids, compounds, or other sub-shapes
+    for (explorer.Init(shape, TopAbs_SOLID); explorer.More(); explorer.Next())
+    {
+        TopoDS_Shape sub_shape = explorer.Current();
+
+        // Check if the current sub-shape matches the name
+        if (the_doc.GetNamedShape(sub_shape, name)) {
+            std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> easy_body = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(
+                sub_shape,   // sub_shape instead of shape
+                1000,        // density
+                true,        // add a visualization
+                false        // add a collision model
+            );
+            return easy_body; // Return the body once found
+        }
+    }
+
+    // Recursively explore compounds and other sub-shapes
+    for (TopoDS_Iterator it(shape); it.More(); it.Next())
+    {
+        const TopoDS_Shape& sub_shape = it.Value();
+        auto result = ExploreShape(sub_shape, the_doc, name); // Recursive call for sub-shapes
+        if (result) {
+            return result;  // Propagate the found body up the recursion chain
+        }
+    }
+
+    return nullptr;  // Return nullptr if nothing is found
+}
+
+
+
 
 int main()
 {
@@ -45,48 +87,27 @@ int main()
     chrono::cascade::ChCascadeDoc the_doc;
 
     bool load_ok = the_doc.Load_STEP("/ProjectChronoLearning/LightSwitch/LightSwitchReduced-All.step");
+
     if (load_ok)
     {
 
         TopoDS_Shape shape;
-        // the_doc.Dump(std::cout);
-        if (the_doc.GetNamedShape(shape, "Spring"))
-        {
-            std::cout << " NOt Seg Faulted yet";
-            body_spring = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(shape,
-                                                                                        1000, // density
-                                                                                        true, // add a visualization
-                                                                                        false // add a collision model
-            );
-            alignToYAxis(body_spring);
-        }
-        if (the_doc.GetNamedShape(shape, "Bumper1"))
-        {
-            body_pad1 = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(shape,
-                                                                                      1000, // density
-                                                                                      true, // add a visualization
-                                                                                      false // add a collision model
-            );
-            alignToYAxis(body_pad1);
-        }
-        if (the_doc.GetNamedShape(shape, "Bumper2"))
-        {
-            body_pad2 = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(shape,
-                                                                                      1000, // density
-                                                                                      true, // add a visualization
-                                                                                      false // add a collision model
-            );
-            alignToYAxis(body_pad2);
-        }
-        if (the_doc.GetNamedShape(shape, "Switch"))
-        {
-            body_switch = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(shape,
-                                                                                        1000, // density
-                                                                                        true, // add a visualization
-                                                                                        false // add a collision model
-            );
-            alignToYAxis(body_switch);
-        }
+        TopoDS_Shape othershape;
+        the_doc.Dump(std::cout);
+
+        std::cout << std::endl
+                  << std::endl;
+
+        bool x = the_doc.GetRootShape(shape, 1);
+
+        // bool g = the_doc.GetNamedShape(shape, "Spring");
+
+        shape.DumpJson(std::cout);
+
+        std::cout << std::endl
+                  << std::endl;
+
+        body_switch = ExploreShape(shape, the_doc, "Switch");
     }
 
     else
@@ -94,17 +115,21 @@ int main()
         std::cout << "The Step File Was not loaded correctly";
     }
 
+    if (!body_switch)
+    {
+        std::cout << "Shape was null" <<std::endl;
+        return 0;
 
-    body_pad1->SetFixed(true);
-    body_pad2->SetFixed(true);
-    body_spring->SetFixed(true);
+    }
+    // body_pad1->SetFixed(true);
+    // body_pad2->SetFixed(true);
+    // body_spring->SetFixed(true);
     body_switch->SetFixed(true);
 
     // the_system.Add(body_pad1);
     // the_system.Add(body_pad2);
     // the_system.Add(body_spring);
     // the_system.Add(body_switch);
-
 
     auto vis_system = chrono_types::make_shared<chrono::irrlicht::ChVisualSystemIrrlicht>();
     vis_system->AttachSystem(&the_system);
@@ -116,7 +141,6 @@ int main()
     vis_system->AddCamera(chrono::ChVector3d(-2, 4, -2));
     vis_system->AddTypicalLights();
 
-    
     while (vis_system->Run())
     {
         vis_system->BeginScene();
@@ -132,3 +156,4 @@ int main()
 
     return load_ok;
 }
+
