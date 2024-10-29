@@ -10,48 +10,34 @@
 #include "chrono_cascade/ChVisualShapeCascade.h"
 #include <TopExp_Explorer.hxx>
 #include <TopoDS_Iterator.hxx>
-
+#include <BRepTools.hxx>
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
-
 // Recursively explore the hierarchy of shapes
-std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> ExploreShape(const TopoDS_Shape &shape, chrono::cascade::ChCascadeDoc &the_doc, const char *name)
+std::vector<std::shared_ptr<chrono::cascade::ChCascadeBodyEasy>> ExploreShape(const TopoDS_Shape &shape, chrono::cascade::ChCascadeDoc &the_doc, const char *name)
 {
     TopExp_Explorer explorer;
+    int counter = 0;
 
+    std::vector<std::shared_ptr<chrono::cascade::ChCascadeBodyEasy>> chrono_shapes;
     // Iterate over solids, compounds, or other sub-shapes
     for (explorer.Init(shape, TopAbs_SOLID); explorer.More(); explorer.Next())
     {
         TopoDS_Shape sub_shape = explorer.Current();
 
-        // Check if the current sub-shape matches the name
-        if (the_doc.GetNamedShape(sub_shape, name)) {
-            std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> easy_body = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(
-                sub_shape,   // sub_shape instead of shape
-                1000,        // density
-                true,        // add a visualization
-                false        // add a collision model
-            );
-            return easy_body; // Return the body once found
-        }
+        std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> easy_body = chrono_types::make_shared<chrono::cascade::ChCascadeBodyEasy>(
+            sub_shape, // sub_shape instead of shape
+            1000,      // density
+            true,      // add a visualization
+            false      // add a collision model
+        );
+
+        chrono_shapes.push_back(easy_body);
     }
 
-    // Recursively explore compounds and other sub-shapes
-    for (TopoDS_Iterator it(shape); it.More(); it.Next())
-    {
-        const TopoDS_Shape& sub_shape = it.Value();
-        auto result = ExploreShape(sub_shape, the_doc, name); // Recursive call for sub-shapes
-        if (result) {
-            return result;  // Propagate the found body up the recursion chain
-        }
-    }
-
-    return nullptr;  // Return nullptr if nothing is found
+    return chrono_shapes; // Return nullptr if nothing is found
 }
-
-
-
 
 int main()
 {
@@ -77,17 +63,13 @@ int main()
         body->ConcatenatePreTransformation(root_frame);
     };
 
-    std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> body_pad1;
-    std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> body_pad2;
-    std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> body_switch;
-    std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> body_spring;
-
     chrono::ChSystemNSC the_system;
 
     chrono::cascade::ChCascadeDoc the_doc;
 
     bool load_ok = the_doc.Load_STEP("/ProjectChronoLearning/LightSwitch/LightSwitchReduced-All.step");
 
+std::vector<std::shared_ptr<chrono::cascade::ChCascadeBodyEasy>> easy_bodies;
     if (load_ok)
     {
 
@@ -107,29 +89,32 @@ int main()
         std::cout << std::endl
                   << std::endl;
 
-        body_switch = ExploreShape(shape, the_doc, "Switch");
+         easy_bodies = ExploreShape(shape, the_doc, "Switch");
     }
 
     else
     {
         std::cout << "The Step File Was not loaded correctly";
+        return load_ok;
     }
+    unsigned short int how_many_bodies = easy_bodies.size();
 
-    if (!body_switch)
+    for (std::shared_ptr<chrono::cascade::ChCascadeBodyEasy> each_body : easy_bodies)
     {
-        std::cout << "Shape was null" <<std::endl;
-        return 0;
+
+        each_body->SetFixed(true);
+        the_system.Add(each_body);
+        each_body->GetVisualShape(0)->SetColor(chrono::ChColor(0.0f,1.0f,1.0f));
 
     }
-    // body_pad1->SetFixed(true);
-    // body_pad2->SetFixed(true);
-    // body_spring->SetFixed(true);
-    body_switch->SetFixed(true);
 
-    // the_system.Add(body_pad1);
-    // the_system.Add(body_pad2);
-    // the_system.Add(body_spring);
-    // the_system.Add(body_switch);
+    // Create a large cube as a floor.
+    std::shared_ptr<chrono::ChBodyEasyBox> floor(new chrono::ChBodyEasyBox(1, 0.2, 1, 1000));
+    floor->SetPos(chrono::ChVector3<>(0, -0.3, 0));
+    floor->SetFixed(true);
+    floor->GetVisualShape(0)->SetColor(chrono::ChColor(1.0f, 0.0f, 0.0f));
+    the_system.Add(floor);
+
 
     auto vis_system = chrono_types::make_shared<chrono::irrlicht::ChVisualSystemIrrlicht>();
     vis_system->AttachSystem(&the_system);
@@ -156,4 +141,3 @@ int main()
 
     return load_ok;
 }
-

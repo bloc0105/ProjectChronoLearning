@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
 
     if (load_ok)
     {
+        mydoc.Dump(std::cout);
         TopoDS_Shape shape;
         if (mydoc.GetNamedShape(shape, "Body"))
         {
